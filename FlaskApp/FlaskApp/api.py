@@ -65,7 +65,7 @@ stock_basic = ts.get_stock_basics()
 def config():
     config = {'supports_search': True,
               'supports_group_request': False,
-              'supported_resolutions': ["5", "15", "30", "60", "1D", "1W", "1M"],
+              'supported_resolutions': ["1D", "1W", "1M"],
               'supports_marks': False,
               'supports_time': True,
               'supports_timescale_marks': False,
@@ -110,7 +110,7 @@ def search_symbols():
                   'full_name': stock_basic[stock_basic.index == query]['name'][0],
                   'description': stock_basic[stock_basic.index == query]['name'][0],
                   'exchange':get_stock_type(query),
-                  'ticker':'%s%s' % (get_stock_type(query),query),
+                  'ticker':query,
                   'type':'stock'}
         return json.dumps([returndict])
     except:
@@ -125,11 +125,14 @@ def history():
     resolution = request.values.get('resolution')
     from_date = request.values.get('from')
     to_date = request.values.get('to')
-
     if resolution == 'D':
         from_date = unix_to_str(from_date)
         to_date = unix_to_str(to_date)
-        history_df = ts.get_k_data(symbol, ktype='D', start=from_date, end=to_date)
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        if to_date == today:
+            history_df = ts.get_k_data(symbol)
+        else:
+            history_df = ts.get_k_data(symbol, ktype='D', start=from_date, end=to_date)
         if len(history_df) == 0:
             s = 'no_data'
             try:
